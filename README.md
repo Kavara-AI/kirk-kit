@@ -91,4 +91,4 @@ kirk-client, kirk-remote, the notebooks and the documentation: the Kavara Kirk S
 
 ## Help
 
-Questions or problems: **SUPPORT_CONTACT** <!-- JE: support contact -->.
+Questions or problems: [support@kavara.ai](mailto:support@kavara.ai).
