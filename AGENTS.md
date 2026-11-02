@@ -21,16 +21,24 @@ a failed check.
 2. **Download and verify.** From the latest release of this repository, download `kirk-kit-<version>.tar.gz`
    and `SHA256SUMS`. Run `shasum -a 256 kirk-kit-<version>.tar.gz` (or `sha256sum`) and compare it with the
    tarball hash in that release's notes. Stop if it differs. Then unpack: `tar -xzf kirk-kit-<version>.tar.gz`
-   and `cd <version>`.
+   and `cd <version>`, and run `shasum -a 256 -c SHA256SUMS` there (every line OK). `SHA256SUMS` lists the
+   kit's contents, so it fails if run next to the tarball. GNU tar warnings about `LIBARCHIVE.xattr` headers
+   are harmless.
 3. **Key.** Check whether the key is available without reading it:
    - macOS: `security find-generic-password -s kavara-api-key >/dev/null 2>&1 && echo present`
    - otherwise: test whether `KAVARA_API_KEY` is set and non-empty, without printing its value.
    If it is absent, ask the user to create a key in the Kavara console and store it themselves: on macOS with
    `security add-generic-password -a "$USER" -s kavara-api-key -w` (it prompts and does not echo), elsewhere in
    their secrets manager as `KAVARA_API_KEY`.
+   For the headless run in step 5 the key must be in that process's environment. Load it without it appearing
+   in a command line, your output or a file:
+   - macOS: `export KAVARA_API_KEY="$(security find-generic-password -s kavara-api-key -w)"`
+   - elsewhere: ask the user to run `read -rs KAVARA_API_KEY && export KAVARA_API_KEY` in the shell you will
+     use, or to provide it through their secrets manager or CI secret. Never ask them to paste it to you.
 4. **Install.** `python3 install_kit.py` (use the interpreter from step 1). It verifies every kit file and
    creates `.venv`. Then `source .venv/bin/activate` and `pip install jupyter nbconvert`.
-5. **Run.** `jupyter nbconvert --to notebook --execute --allow-errors notebooks/01_rf_quickstart.ipynb --output run.ipynb`
+5. **Run.** Set `KIRK_MODELS_DIR` to a fresh folder so this run does not overwrite earlier saved models, then
+   `jupyter nbconvert --to notebook --execute --allow-errors notebooks/01_rf_quickstart.ipynb --output run.ipynb`
 6. **Read the result.** Show the user the last cell of `run.ipynb`.
 
 ## What success looks like

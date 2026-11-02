@@ -19,13 +19,15 @@ model itself, which runs on Kavara's API under your own key.
 From the [latest release](../../releases/latest), download `kirk-kit-<version>.tar.gz` and `SHA256SUMS`, then:
 
 ```bash
-shasum -a 256 kirk-kit-0.1.2.tar.gz
-# 8ae2e1f49ce4374f5c0b575f73694bd901989af2790e6aea4d1833bd6b66976e
+shasum -a 256 kirk-kit-0.1.2.tar.gz      # Linux: sha256sum
+# must print 8ae2e1f49ce4374f5c0b575f73694bd901989af2790e6aea4d1833bd6b66976e (also in the release notes)
 tar -xzf kirk-kit-0.1.2.tar.gz && cd 0.1.2
+shasum -a 256 -c SHA256SUMS               # every line must say OK
 ```
 
-The hash must match the one in the release notes. Inside the kit, `install_kit.py` checks every file against
-the kit's own `SHA256SUMS`.
+`SHA256SUMS` lists the files **inside** the kit, so check it from the unpacked `0.1.2` folder, not next to the
+tarball. `install_kit.py` runs the same check again before installing. GNU tar may print warnings about
+unknown extended header keywords (`LIBARCHIVE.xattr…`); they are harmless macOS metadata.
 
 ## 2. Install
 
@@ -43,8 +45,20 @@ pip install jupyterlab             # optional, for the interactive notebook
   security add-generic-password -a "$USER" -s kavara-api-key -w
   ```
 
-- **Windows and Linux:** enter it at the notebook's hidden prompt; it is kept in memory for that session only.
-- **Automated runs:** set `KAVARA_API_KEY` in the process environment from your secrets manager.
+- **Windows and Linux, interactive:** enter it at the notebook's hidden prompt; it is kept in memory for that
+  session only.
+- **Headless runs (scripts, CI, IDEs, agents):** the libraries read `KAVARA_API_KEY` from the environment. Put it
+  there without typing it into a command line:
+
+  ```bash
+  # macOS, from the Keychain entry above:
+  export KAVARA_API_KEY="$(security find-generic-password -s kavara-api-key -w)"
+  # Linux or any shell, prompted and not echoed:
+  read -rs -p "Kavara API key: " KAVARA_API_KEY && export KAVARA_API_KEY && echo
+  # CI: map it from your secrets store into the job's environment as KAVARA_API_KEY.
+  ```
+
+  The key is sent as the `X-Kavara-Key` header; an `Authorization: Bearer` header is not accepted.
 
 ## 4. Run the quickstart
 
@@ -63,7 +77,8 @@ reports **passed / failed / skipped**, and a summary always runs at the end. A s
 
 - **Your own data:** set `KIT_IQ_PATH` to a SigMF recording or a `.npy` of complex samples and rerun. Any
   other tensor works too: put windows on the first axis and render with `kavara_preprocess.uhura.render`.
-- **Your models** are saved to `~/kirk-models/` (or `KIRK_MODELS_DIR`). They are yours to keep, copy and share;
+- **Your models** are saved to `~/kirk-models/`, and a rerun overwrites the previous run's files. Set
+  `KIRK_MODELS_DIR` to a new folder per run to keep them apart. They are yours to keep, copy and share;
   they run only through Kavara's API.
 
 ## Limits
