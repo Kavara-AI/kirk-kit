@@ -30,7 +30,10 @@ a failed check.
    If it is absent, ask the user to create a key in the Kavara console and store it themselves: on macOS with
    `security add-generic-password -a "$USER" -s kavara-api-key -w` (it prompts and does not echo), elsewhere in
    their secrets manager as `KAVARA_API_KEY`.
-   For the headless run in step 5 the key must be in that process's environment. Load it without it appearing
+   For the headless notebook run in step 5 the key must be in `KAVARA_API_KEY` in that process's environment.
+   If you call the client library directly instead of the notebook, it needs `KIRK_API_KEY` (same value),
+   `KIRK_API_URL=https://api.kavara.ai`, `KIRK_API_KEY_HEADER=X-Kavara-Key` and
+   `KIRK_API_ROUTE_PREFIX=/v1/kirk-api`; its 0.1.2 defaults do not match the service and give `401`. Load it without it appearing
    in a command line, your output or a file:
    - macOS: `export KAVARA_API_KEY="$(security find-generic-password -s kavara-api-key -w)"`
    - elsewhere: ask the user to run `read -rs KAVARA_API_KEY && export KAVARA_API_KEY` in the shell you will

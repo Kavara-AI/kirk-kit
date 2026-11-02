@@ -47,8 +47,9 @@ pip install jupyterlab             # optional, for the interactive notebook
 
 - **Windows and Linux, interactive:** enter it at the notebook's hidden prompt; it is kept in memory for that
   session only.
-- **Headless runs (scripts, CI, IDEs, agents):** the libraries read `KAVARA_API_KEY` from the environment. Put it
-  there without typing it into a command line:
+- **Headless notebook runs (scripts, CI, IDEs, agents):** the quickstart notebook reads `KAVARA_API_KEY` from the
+  environment first, then the macOS Keychain, then the prompt. Put it there without typing it into a command
+  line:
 
   ```bash
   # macOS, from the Keychain entry above:
@@ -59,6 +60,20 @@ pip install jupyterlab             # optional, for the interactive notebook
   ```
 
   The key is sent as the `X-Kavara-Key` header; an `Authorization: Bearer` header is not accepted.
+
+- **Calling the client library directly (your own code or agent):** in kit 0.1.2 the library does not read
+  `KAVARA_API_KEY` and its defaults do not match api.kavara.ai. Set all four, or pass the same values to
+  `RemoteBackend(...)` as the notebook does:
+
+  ```bash
+  export KIRK_API_KEY="$KAVARA_API_KEY"        # loaded as above, never typed
+  export KIRK_API_URL=https://api.kavara.ai
+  export KIRK_API_KEY_HEADER=X-Kavara-Key
+  export KIRK_API_ROUTE_PREFIX=/v1/kirk-api
+  ```
+
+  Without these the library sends the key as `Authorization: Bearer` to the wrong routes and gets `401`. The
+  `python -m kirk_remote doctor` tool in 0.1.2 uses those same defaults; do not rely on it yet.
 
 ## 4. Run the quickstart
 
