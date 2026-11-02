@@ -1,0 +1,34 @@
+Kavara Kirk SDK Licence (kirk-client, kirk-remote)
+Copyright (c) 2026 Kavara, Inc. All rights reserved.
+
+1. Grant. Kavara, Inc. ("Kavara") grants you a non-exclusive, non-transferable, revocable licence to install
+   and use this software (the "SDK") solely to access Kavara's hosted API under an active Kavara account, for
+   your own internal purposes.
+
+2. Restrictions. You may not:
+   (a) use the SDK, or any part of it, other than with Kavara's API;
+   (b) copy, distribute, sublicense, sell, rent, lend, publish or otherwise make the SDK available to any
+       third party, except copies of your own notebooks and saved models;
+   (c) reverse engineer, decompile, disassemble or otherwise attempt to derive the source, structure,
+       algorithms or methods of the SDK or of Kavara's API or service, except to the extent applicable law
+       expressly permits despite this restriction;
+   (d) modify the SDK or create derivative works of it, other than configuration and your own code that calls it;
+   (e) remove or alter any notice of proprietary rights.
+
+3. Your data and models. Your input data and the saved models (snapshots) you create remain yours. They are
+   usable only through Kavara's API.
+
+4. Ownership. Kavara and its licensors keep all rights, title and interest in the SDK. No rights are granted
+   except those expressly stated here.
+
+5. Termination. This licence ends automatically if you breach it or when your Kavara account ends. You must
+   then stop using and delete the SDK.
+
+6. No warranty. THE SDK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+
+7. Limitation of liability. TO THE EXTENT PERMITTED BY LAW, KAVARA IS NOT LIABLE FOR ANY INDIRECT, INCIDENTAL,
+   SPECIAL, CONSEQUENTIAL OR PUNITIVE DAMAGES, OR LOSS OF DATA OR PROFITS, ARISING FROM THE SDK.
+
+8. Other terms. Your use of Kavara's API is also governed by your agreement with Kavara. If they conflict, that
+   agreement prevails.

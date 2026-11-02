@@ -1,0 +1,8 @@
+Kavara Kirk customer kit: licences
+
+- kirk-client, kirk-remote, the notebooks and the documentation in this kit: Kavara Kirk SDK Licence, LICENSE-SDK.
+  Use only with Kavara's API; no redistribution; no reverse engineering.
+- kavara-preprocess (Uhura's renderer): Apache License 2.0, LICENSE-APACHE.
+- Third-party packages listed in requirements.lock are installed from their publishers under their own licences.
+
+Copyright (c) 2026 Kavara, Inc.
