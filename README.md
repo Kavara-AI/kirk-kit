@@ -54,6 +54,7 @@ printf 'X-Kavara-Key: %s\n' "$KAVARA_API_KEY" | curl -sS -o /dev/null -w '%{http
 | `200` | `403` | The key is valid. The account is **not admitted** to the Kirk API (or is frozen). Request admission as above. |
 | `403` | `403` | The key is unknown or revoked. Create a new key at [kavara.ai/login](https://kavara.ai/login). |
 | `401` | `401` | No usable key reached the API. Fix how the key is sent. |
+| `400` | `401` | No key was sent: `KAVARA_API_KEY` is empty or unset (`/v1/engine` answers `400 invalid_headers` to an empty key header). Load the key as in section 3. |
 | `200` | `200` | You have access. Rerun; any later `402` is about credits, not admission. |
 | any other pair | | Unexpected. Report both codes as printed to [support@kavara.ai](mailto:support@kavara.ai). |
 

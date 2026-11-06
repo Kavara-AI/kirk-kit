@@ -82,6 +82,8 @@ printf 'X-Kavara-Key: %s\n' "$KAVARA_API_KEY" | curl -sS -o /dev/null -w '%{http
   rerun once they say it is granted. Report the notebook's summary as it is: a failure, not a success.
 - Both 403: the key is unknown or revoked; the user creates a new key.
 - Both 401: no usable key reached the API; step 3.
+- `/v1/engine` 400 and `/v1/kirk-api/contract` 401: no key was sent (`KAVARA_API_KEY` is empty or unset;
+  `/v1/engine` answers `400 invalid_headers` to an empty key header); step 3.
 - Both 200: access is fine; rerun the notebook. A later `402` is about credits, not admission.
 - Any other combination: stop and report both codes verbatim to the user.
 
