@@ -60,7 +60,7 @@ a failed check.
 | `403 request_denied` | the relay refuses without saying why: unknown or revoked key, **account not admitted to the Kirk API**, or frozen account | run "Diagnose a 403" below |
 | `403 insufficient_scope` | the key is known and admitted but lacks a scope this route needs; the response names it | the user creates a key with that scope |
 | `402` | not enough credits for `learn` or `score`; the body is meant to carry `required` and `balance` | report it; the user adds credits; do not retry in a loop |
-| `429` / `RateLimitedError` | over 300 calls a minute for this account | wait a minute and rerun |
+| `429` / `RateLimitedError` | over 300 calls a minute for this account | wait the `Retry-After` seconds (a minute if it is absent) and rerun |
 | `422 EnvelopeRefused` outside the refusal step | input not rendered into [-1, 1] | render with `kavara_preprocess.uhura` |
 | cannot connect to api.kavara.ai | no network from this environment | run where outbound HTTPS is allowed |
 
@@ -72,8 +72,8 @@ unadmitted account, so tell them apart with the same key (never print it; always
 request with no key is blocked at the edge, for Python `urllib` as Cloudflare `403` `error code: 1010`):
 
 ```bash
-curl -sS -o /dev/null -w '%{http_code}\n' -H "X-Kavara-Key: $KAVARA_API_KEY" https://api.kavara.ai/v1/engine
-curl -sS -o /dev/null -w '%{http_code}\n' -H "X-Kavara-Key: $KAVARA_API_KEY" https://api.kavara.ai/v1/kirk-api/contract
+printf 'X-Kavara-Key: %s\n' "$KAVARA_API_KEY" | curl -sS -o /dev/null -w '%{http_code}\n' -H @- https://api.kavara.ai/v1/engine
+printf 'X-Kavara-Key: %s\n' "$KAVARA_API_KEY" | curl -sS -o /dev/null -w '%{http_code}\n' -H @- https://api.kavara.ai/v1/kirk-api/contract
 ```
 
 - `/v1/engine` 200 and `/v1/kirk-api/contract` 403: the key is valid and the account is **not admitted** (or is
@@ -82,6 +82,8 @@ curl -sS -o /dev/null -w '%{http_code}\n' -H "X-Kavara-Key: $KAVARA_API_KEY" htt
   rerun once they say it is granted. Report the notebook's summary as it is: a failure, not a success.
 - Both 403: the key is unknown or revoked; the user creates a new key.
 - Both 401: no usable key reached the API; step 3.
+- Both 200: access is fine; rerun the notebook. A later `402` is about credits, not admission.
+- Any other combination: stop and report both codes verbatim to the user.
 
 ## Going further
 

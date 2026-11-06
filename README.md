@@ -37,15 +37,16 @@ edge. `Authorization: Bearer` is not accepted and gives `401`.
 | `403` `{"error":"request_denied"}` | The relay refuses and deliberately does not say why. The same body covers an unknown key, a revoked key, an account that is not admitted, and a frozen account. | Run the check below. If it says "not admitted", request admission. Otherwise create a new key at [kavara.ai/login](https://kavara.ai/login). |
 | `403` `{"error":"insufficient_scope"}` | The key is known and the account is admitted, but the key lacks a scope this route needs (keys carry `read` and `score`); the response names the scope. | Create a key with the needed scope. |
 | `402` | The account does not have enough credits for a `learn` or `score` call. | Add credits. The 402 body is meant to report `required` and `balance`; read it if present. |
-| `429` | More than 300 calls a minute for the account. | Wait for `Retry-After` and retry. |
+| `429` | More than 300 calls a minute for the account. | Wait the `Retry-After` seconds (a minute if it is absent) and retry. |
 
 `403 request_denied` looks the same for a bad key and for an account that is not admitted. Tell them apart by
 calling an endpoint that does not need Kirk API admission, with the same key:
 
 ```bash
-# $KAVARA_API_KEY loaded as in section 3, never typed. -sS prints errors; the key is not echoed.
-curl -sS -o /dev/null -w '%{http_code}\n' -H "X-Kavara-Key: $KAVARA_API_KEY" https://api.kavara.ai/v1/engine
-curl -sS -o /dev/null -w '%{http_code}\n' -H "X-Kavara-Key: $KAVARA_API_KEY" https://api.kavara.ai/v1/kirk-api/contract
+# $KAVARA_API_KEY loaded as in section 3, never typed. The header goes to curl on stdin (-H @-), so the key
+# is not in curl's command line; -sS prints errors and the key is not echoed.
+printf 'X-Kavara-Key: %s\n' "$KAVARA_API_KEY" | curl -sS -o /dev/null -w '%{http_code}\n' -H @- https://api.kavara.ai/v1/engine
+printf 'X-Kavara-Key: %s\n' "$KAVARA_API_KEY" | curl -sS -o /dev/null -w '%{http_code}\n' -H @- https://api.kavara.ai/v1/kirk-api/contract
 ```
 
 | `/v1/engine` | `/v1/kirk-api/contract` | Meaning |
@@ -53,7 +54,8 @@ curl -sS -o /dev/null -w '%{http_code}\n' -H "X-Kavara-Key: $KAVARA_API_KEY" htt
 | `200` | `403` | The key is valid. The account is **not admitted** to the Kirk API (or is frozen). Request admission as above. |
 | `403` | `403` | The key is unknown or revoked. Create a new key. |
 | `401` | `401` | No usable key reached the API. Fix how the key is sent. |
-| `200` | `200` | You have access. Any later `402` is about credits, not admission. |
+| `200` | `200` | You have access. Rerun; any later `402` is about credits, not admission. |
+| any other pair | | Unexpected. Report both codes as printed to [support@kavara.ai](mailto:support@kavara.ai). |
 
 ## 1. Download and check
 
