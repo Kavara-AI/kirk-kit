@@ -14,6 +14,47 @@ model itself, which runs on Kavara's API under your own key.
 - A Kavara API key: sign in at [kavara.ai](https://kavara.ai/login) and create one. Keep it secret: never paste it
   into a notebook, a script, a command line or a file you share.
 
+## Kirk API access: a key is not enough
+
+A valid key proves who you are. It does not by itself let your account use the Kirk API (`/v1/kirk-api/*`):
+the account must also be **admitted**. As of this writing admission is **not automatic**. Kavara admits
+accounts by hand, and a new account is not admitted. To request it, email
+[support@kavara.ai](mailto:support@kavara.ai) from the address you signed up with and say you want Kirk API
+access. Until your account is admitted, every Kirk API call is refused with `403 request_denied`, however
+correct your key and code are. `learn` and `score` also spend credits, so an admitted account with no credits
+is refused with `402` (see below).
+
+If you are an agent, send `X-Kavara-Key: <key>` on **every** request, including health checks. A request with
+no key is refused at the edge: with a default Python `urllib` User-Agent it gets Cloudflare `403` with the
+plain-text body `error code: 1010`, otherwise `401 invalid_api_key`. With the key the request passes the
+edge. `Authorization: Bearer` is not accepted and gives `401`.
+
+### What the status codes mean
+
+| You see | Meaning | Do |
+| --- | --- | --- |
+| `401` `{"error":"invalid_api_key"}` | No key reached the API, the key is not in the form Kavara issues, or it was sent as `Authorization: Bearer`. | Send the key in `X-Kavara-Key`. Check it was copied whole. |
+| `403` `{"error":"request_denied"}` | The relay refuses and deliberately does not say why. The same body covers an unknown key, a revoked key, an account that is not admitted, and a frozen account. | Run the check below. If it says "not admitted", request admission. Otherwise create a new key at [kavara.ai/login](https://kavara.ai/login). |
+| `403` `{"error":"insufficient_scope"}` | The key is known and the account is admitted, but the key lacks a scope this route needs (keys carry `read` and `score`); the response names the scope. | Create a key with the needed scope. |
+| `402` | The account does not have enough credits for a `learn` or `score` call. | Add credits. The 402 body is meant to report `required` and `balance`; read it if present. |
+| `429` | More than 300 calls a minute for the account. | Wait for `Retry-After` and retry. |
+
+`403 request_denied` looks the same for a bad key and for an account that is not admitted. Tell them apart by
+calling an endpoint that does not need Kirk API admission, with the same key:
+
+```bash
+# $KAVARA_API_KEY loaded as in section 3, never typed. -sS prints errors; the key is not echoed.
+curl -sS -o /dev/null -w '%{http_code}\n' -H "X-Kavara-Key: $KAVARA_API_KEY" https://api.kavara.ai/v1/engine
+curl -sS -o /dev/null -w '%{http_code}\n' -H "X-Kavara-Key: $KAVARA_API_KEY" https://api.kavara.ai/v1/kirk-api/contract
+```
+
+| `/v1/engine` | `/v1/kirk-api/contract` | Meaning |
+| --- | --- | --- |
+| `200` | `403` | The key is valid. The account is **not admitted** to the Kirk API (or is frozen). Request admission as above. |
+| `403` | `403` | The key is unknown or revoked. Create a new key. |
+| `401` | `401` | No usable key reached the API. Fix how the key is sent. |
+| `200` | `200` | You have access. Any later `402` is about credits, not admission. |
+
 ## 1. Download and check
 
 From the [latest release](../../releases/latest), download `kirk-kit-<version>.tar.gz` and `SHA256SUMS`, then:
