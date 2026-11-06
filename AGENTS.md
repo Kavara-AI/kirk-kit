@@ -56,11 +56,36 @@ a failed check.
 
 | You see | Meaning | Do |
 |---|---|---|
-| `401 invalid_api_key` | no key reached the API | step 3 |
-| `403 request_denied` | the key is unknown or revoked | the user creates a new key at https://kavara.ai/login |
-| `429` / `RateLimitedError` | over 300 calls a minute for this account | wait a minute and rerun |
+| `401 invalid_api_key` | no usable key reached the API: none sent, malformed, or sent as `Authorization: Bearer` | step 3; send it only as `X-Kavara-Key` |
+| `403 request_denied` | the relay refuses without saying why: unknown or revoked key, **account not admitted to the Kirk API**, or frozen account | run "Diagnose a 403" below |
+| `403 insufficient_scope` | the key is known and admitted but lacks a scope this route needs; the response names it | the user creates a key with that scope |
+| `402` | not enough credits for `learn` or `score`; the body is meant to carry `required` and `balance` | report it; the user adds credits; do not retry in a loop |
+| `429` / `RateLimitedError` | over 300 calls a minute for this account | wait the `Retry-After` seconds (a minute if it is absent) and rerun |
 | `422 EnvelopeRefused` outside the refusal step | input not rendered into [-1, 1] | render with `kavara_preprocess.uhura` |
 | cannot connect to api.kavara.ai | no network from this environment | run where outbound HTTPS is allowed |
+
+## Diagnose a 403
+
+Kirk API access needs two things: a valid key and an **admitted account**. Admission is not automatic today;
+Kavara admits accounts by hand. `403 request_denied` is deliberately identical for a bad key and an
+unadmitted account, so tell them apart with the same key (never print it; always send `X-Kavara-Key`; a
+request with no key is blocked at the edge, for Python `urllib` as Cloudflare `403` `error code: 1010`):
+
+```bash
+printf 'X-Kavara-Key: %s\n' "$KAVARA_API_KEY" | curl -sS -o /dev/null -w '%{http_code}\n' -H @- https://api.kavara.ai/v1/engine
+printf 'X-Kavara-Key: %s\n' "$KAVARA_API_KEY" | curl -sS -o /dev/null -w '%{http_code}\n' -H @- https://api.kavara.ai/v1/kirk-api/contract
+```
+
+- `/v1/engine` 200 and `/v1/kirk-api/contract` 403: the key is valid and the account is **not admitted** (or is
+  frozen). Stop. Do not retry, rotate the key or work around it. Tell the user to email
+  [support@kavara.ai](mailto:support@kavara.ai) from their sign-up address to request Kirk API access, and
+  rerun once they say it is granted. Report the notebook's summary as it is: a failure, not a success.
+- Both 403: the key is unknown or revoked; the user creates a new key.
+- Both 401: no usable key reached the API; step 3.
+- `/v1/engine` 400 and `/v1/kirk-api/contract` 401: no key was sent (`KAVARA_API_KEY` is empty or unset;
+  `/v1/engine` answers `400 invalid_headers` to an empty key header); step 3.
+- Both 200: access is fine; rerun the notebook. A later `402` is about credits, not admission.
+- Any other combination: stop and report both codes verbatim to the user.
 
 ## Going further
 
