@@ -34,7 +34,7 @@ edge. `Authorization: Bearer` is not accepted and gives `401`.
 | You see | Meaning | Do |
 | --- | --- | --- |
 | `401` `{"error":"invalid_api_key"}` | No key reached the API, the key is not in the form Kavara issues, or it was sent as `Authorization: Bearer`. | Send the key in `X-Kavara-Key`. Check it was copied whole. |
-| `403` `{"error":"request_denied"}` | The relay refuses and deliberately does not say why. The same body covers an unknown key, a revoked key, an account that is not admitted, and a frozen account. | Run the check below. If it says "not admitted", request admission. Otherwise create a new key at [kavara.ai/login](https://kavara.ai/login). |
+| `403` `{"error":"request_denied"}` | The relay refuses and deliberately does not say why. The same body covers an unknown key, a revoked key, an account that is not admitted, and a frozen account. | Run the check below and follow its table. |
 | `403` `{"error":"insufficient_scope"}` | The key is known and the account is admitted, but the key lacks a scope this route needs (keys carry `read` and `score`); the response names the scope. | Create a key with the needed scope. |
 | `402` | The account does not have enough credits for a `learn` or `score` call. | Add credits. The 402 body is meant to report `required` and `balance`; read it if present. |
 | `429` | More than 300 calls a minute for the account. | Wait the `Retry-After` seconds (a minute if it is absent) and retry. |
@@ -52,7 +52,7 @@ printf 'X-Kavara-Key: %s\n' "$KAVARA_API_KEY" | curl -sS -o /dev/null -w '%{http
 | `/v1/engine` | `/v1/kirk-api/contract` | Meaning |
 | --- | --- | --- |
 | `200` | `403` | The key is valid. The account is **not admitted** to the Kirk API (or is frozen). Request admission as above. |
-| `403` | `403` | The key is unknown or revoked. Create a new key. |
+| `403` | `403` | The key is unknown or revoked. Create a new key at [kavara.ai/login](https://kavara.ai/login). |
 | `401` | `401` | No usable key reached the API. Fix how the key is sent. |
 | `200` | `200` | You have access. Rerun; any later `402` is about credits, not admission. |
 | any other pair | | Unexpected. Report both codes as printed to [support@kavara.ai](mailto:support@kavara.ai). |
